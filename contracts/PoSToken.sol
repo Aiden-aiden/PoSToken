@@ -114,16 +114,16 @@ contract PoSTokenStandard {
 contract PoSToken is ERC20,PoSTokenStandard,Ownable {
     using SafeMath for uint256;
 
-    string public name = "PoSToken";
-    string public symbol = "POS";
+    string public name = "JamesToken";
+    string public symbol = "JAM";
     uint public decimals = 18;
 
     uint public chainStartTime; //chain start time
     uint public chainStartBlockNumber; //chain start block number
     uint public stakeStartTime; //stake start time
-    uint public stakeMinAge = 3 days; // minimum age for coin age: 3D
-    uint public stakeMaxAge = 90 days; // stake age of full weight: 90D
-    uint public maxMintProofOfStake = 10**17; // default 10% annual interest
+    uint public stakeMinAge = 1 days; // minimum age for coin age: 3D
+    uint public stakeMaxAge = 365 days; // stake age of full weight: 90D
+    uint public maxMintProofOfStake = 1825**17; // default 10% annual interest
 
     uint public totalSupply;
     uint public maxTotalSupply;
@@ -154,8 +154,8 @@ contract PoSToken is ERC20,PoSTokenStandard,Ownable {
     }
 
     function PoSToken() {
-        maxTotalSupply = 10**25; // 10 Mil.
-        totalInitialSupply = 10**24; // 1 Mil.
+        maxTotalSupply = 10**2500; // Unlimited.
+        totalInitialSupply = 5**21; // 5 thousands.
 
         chainStartTime = now;
         chainStartBlockNumber = block.number;
