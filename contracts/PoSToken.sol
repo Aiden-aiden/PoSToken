@@ -45,7 +45,7 @@ contract Ownable {
      * @dev The Ownable constructor sets the original `owner` of the contract to the sender
      * account.
      */
-    function Ownable() {
+    constructor() {
         owner = msg.sender;
     }
 
@@ -153,8 +153,8 @@ contract PoSToken is ERC20,PoSTokenStandard,Ownable {
         _;
     }
 
-    function PoSToken() {
-        maxTotalSupply = 10**2500; // Unlimited.
+    constructor() {
+        maxTotalSupply = 40**26; // Unlimited.
         totalInitialSupply = 5**21; // 5 thousands.
 
         chainStartTime = now;
@@ -168,7 +168,7 @@ contract PoSToken is ERC20,PoSTokenStandard,Ownable {
         if(msg.sender == _to) return mint();
         balances[msg.sender] = balances[msg.sender].sub(_value);
         balances[_to] = balances[_to].add(_value);
-        Transfer(msg.sender, _to, _value);
+        emit Transfer(msg.sender, _to, _value);
         if(transferIns[msg.sender].length > 0) delete transferIns[msg.sender];
         uint64 _now = uint64(now);
         transferIns[msg.sender].push(transferInStruct(uint128(balances[msg.sender]),_now));
@@ -183,7 +183,7 @@ contract PoSToken is ERC20,PoSTokenStandard,Ownable {
     function transferFrom(address _from, address _to, uint256 _value) onlyPayloadSize(3 * 32) returns (bool) {
         require(_to != address(0));
 
-        var _allowance = allowed[_from][msg.sender];
+        uint256 _allowance = allowed[_from][msg.sender];
 
         // Check is not needed because sub(_allowance, _value) will already throw if this condition is not met
         // require (_value <= _allowance);
@@ -191,7 +191,7 @@ contract PoSToken is ERC20,PoSTokenStandard,Ownable {
         balances[_from] = balances[_from].sub(_value);
         balances[_to] = balances[_to].add(_value);
         allowed[_from][msg.sender] = _allowance.sub(_value);
-        Transfer(_from, _to, _value);
+        emit Transfer(_from, _to, _value);
         if(transferIns[_from].length > 0) delete transferIns[_from];
         uint64 _now = uint64(now);
         transferIns[_from].push(transferInStruct(uint128(balances[_from]),_now));
@@ -203,7 +203,7 @@ contract PoSToken is ERC20,PoSTokenStandard,Ownable {
         require((_value == 0) || (allowed[msg.sender][_spender] == 0));
 
         allowed[msg.sender][_spender] = _value;
-        Approval(msg.sender, _spender, _value);
+        emit Approval(msg.sender, _spender, _value);
         return true;
     }
 
@@ -223,7 +223,7 @@ contract PoSToken is ERC20,PoSTokenStandard,Ownable {
         delete transferIns[msg.sender];
         transferIns[msg.sender].push(transferInStruct(uint128(balances[msg.sender]),uint64(now)));
 
-        Mint(msg.sender, reward);
+        emit Mint(msg.sender, reward);
         return true;
     }
 
@@ -238,9 +238,9 @@ contract PoSToken is ERC20,PoSTokenStandard,Ownable {
     function annualInterest() constant returns(uint interest) {
         uint _now = now;
         interest = maxMintProofOfStake;
-        if((_now.sub(stakeStartTime)).div(1 years) == 0) {
+        if((_now.sub(stakeStartTime)).div(365 days) == 0) {
             interest = (770 * maxMintProofOfStake).div(100);
-        } else if((_now.sub(stakeStartTime)).div(1 years) == 1){
+        } else if((_now.sub(stakeStartTime)).div(365 days) == 1){
             interest = (435 * maxMintProofOfStake).div(100);
         }
     }
@@ -255,10 +255,10 @@ contract PoSToken is ERC20,PoSTokenStandard,Ownable {
         uint interest = maxMintProofOfStake;
         // Due to the high interest rate for the first two years, compounding should be taken into account.
         // Effective annual interest rate = (1 + (nominal rate / number of compounding periods)) ^ (number of compounding periods) - 1
-        if((_now.sub(stakeStartTime)).div(1 years) == 0) {
+        if((_now.sub(stakeStartTime)).div(365 days) == 0) {
             // 1st year effective annual interest rate is 100% when we select the stakeMaxAge (90 days) as the compounding period.
             interest = (770 * maxMintProofOfStake).div(100);
-        } else if((_now.sub(stakeStartTime)).div(1 years) == 1){
+        } else if((_now.sub(stakeStartTime)).div(365 days) == 1){
             // 2nd year effective annual interest rate is 50%
             interest = (435 * maxMintProofOfStake).div(100);
         }
@@ -295,7 +295,7 @@ contract PoSToken is ERC20,PoSTokenStandard,Ownable {
         totalInitialSupply = totalInitialSupply.sub(_value);
         maxTotalSupply = maxTotalSupply.sub(_value*10);
 
-        Burn(msg.sender, _value);
+        emit Burn(msg.sender, _value);
     }
 
     /* Batch token transfer. Used by contract creator to distribute initial tokens to holders */
@@ -312,7 +312,7 @@ contract PoSToken is ERC20,PoSTokenStandard,Ownable {
         for(uint j = 0; j < _recipients.length; j++){
             balances[_recipients[j]] = balances[_recipients[j]].add(_values[j]);
             transferIns[_recipients[j]].push(transferInStruct(uint128(_values[j]),_now));
-            Transfer(msg.sender, _recipients[j], _values[j]);
+            emit Transfer(msg.sender, _recipients[j], _values[j]);
         }
 
         balances[msg.sender] = balances[msg.sender].sub(total);
